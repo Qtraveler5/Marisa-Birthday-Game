@@ -124,7 +124,6 @@
 </head>
 
 <body>
-    <!-- Audio-Elemente für Hintergrundmusik und Sound-Effekte -->
     <audio id="bgMusic" loop src="happy_birthday.mp3"></audio>
     <audio id="jumpSound" src="sproing.mp3"></audio>
 
@@ -144,7 +143,6 @@
     </div>
 
     <script>
-        // Elemente abrufen
         const birthdayMessage = document.getElementById('birthday-message');
         const gameContainer = document.getElementById('game-container');
         const canvas = document.getElementById('gameCanvas');
@@ -156,7 +154,6 @@
         const bgMusic = document.getElementById('bgMusic');
         const jumpSound = document.getElementById('jumpSound');
 
-        // Canvas-Größe anpassen
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -164,18 +161,13 @@
             fireworksCanvas.height = window.innerHeight;
         }
 
-        // Nachricht einblenden, dann ausblenden und Spiel starten
         window.onload = function () {
             resizeCanvas();
 
-            // Nachricht 3 Sekunden anzeigen, dann ausblenden
             setTimeout(() => {
                 birthdayMessage.style.opacity = '0';
-
-                // Musik starten (muss nach einer Benutzerinteraktion erfolgen, daher versuchen wir es hier)
                 bgMusic.play().catch(e => console.log("Musik konnte nicht automatisch gestartet werden:", e));
 
-                // Nach dem Ausblenden das Spiel starten
                 setTimeout(() => {
                     birthdayMessage.style.display = 'none';
                     gameContainer.style.display = 'block';
@@ -184,13 +176,11 @@
             }, 3000);
         };
 
-        // Spielvariablen
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles;
         const gravity = 0.5;
         const jumpForce = -20;
-        const WINNING_SCORE = 7; // Levelsprung nach 7 geschafften Hürden
+        const WINNING_SCORE = 21; // Jetzt muss man 21 Hürden schaffen um zu gewinnen (3 Level × 7)
 
-        // Spieler-Klasse (Strichmännchen)
         class Player {
             constructor() {
                 this.width = 40;
@@ -199,15 +189,13 @@
                 this.y = canvas.height - this.height - 50;
                 this.velocityY = 0;
                 this.jumping = false;
-                this.color = '#ff4081'; // Spielerfarbe
+                this.color = '#ff4081';
             }
 
             update() {
-                // Schwerkraft anwenden
                 this.velocityY += gravity;
                 this.y += this.velocityY;
 
-                // Bodenkollision
                 if (this.y > canvas.height - this.height - 50) {
                     this.y = canvas.height - this.height - 50;
                     this.jumping = false;
@@ -219,7 +207,6 @@
                 if (!this.jumping) {
                     this.velocityY = jumpForce;
                     this.jumping = true;
-                    // Sprung-Sound abspielen
                     jumpSound.currentTime = 0;
                     jumpSound.play();
                 }
@@ -229,18 +216,15 @@
                 ctx.strokeStyle = this.color;
                 ctx.lineWidth = 3;
 
-                // Kopf zeichnen
                 ctx.beginPath();
                 ctx.arc(this.x + this.width / 2, this.y + 15, 15, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // Körper zeichnen
                 ctx.beginPath();
                 ctx.moveTo(this.x + this.width / 2, this.y + 30);
                 ctx.lineTo(this.x + this.width / 2, this.y + 60);
                 ctx.stroke();
 
-                // Beine zeichnen
                 ctx.beginPath();
                 ctx.moveTo(this.x + this.width / 2, this.y + 60);
                 ctx.lineTo(this.x + this.width / 2 - 15, this.y + 80);
@@ -248,7 +232,6 @@
                 ctx.lineTo(this.x + this.width / 2 + 15, this.y + 80);
                 ctx.stroke();
 
-                // Arme zeichnen
                 ctx.beginPath();
                 ctx.moveTo(this.x + this.width / 2, this.y + 40);
                 ctx.lineTo(this.x + this.width / 2 - 15, this.y + 55);
@@ -258,13 +241,12 @@
             }
         }
 
-        // Hindernis-Klasse
         const OBSTACLE_TYPES = [
             { name: "Auto", width: 60, height: 30, color: '#f44336' },
             { name: "Moped", width: 40, height: 20, color: '#2196f3' },
-            { name: "Flugzeug", width: 80, height: 40, color: '#ff9800', y_offset: 50 }, // Fliegt höher
+            { name: "Flugzeug", width: 80, height: 40, color: '#ff9800', y_offset: 50 },
             { name: "Traktor", width: 70, height: 40, color: '#4caf50' },
-            { name: "Hubschrauber", width: 90, height: 50, color: '#9c27b0', y_offset: 80 }, // Fliegt noch höher
+            { name: "Hubschrauber", width: 90, height: 50, color: '#9c27b0', y_offset: 80 },
             { name: "UFO", width: 50, height: 20, color: '#00bcd4', y_offset: 100 },
             { name: "Rakete", width: 30, height: 80, color: '#e91e63' }
         ];
@@ -288,7 +270,6 @@
 
             draw() {
                 ctx.fillStyle = this.color;
-                // Ein einfacher Platzhalter für das Transportmittel
                 ctx.fillRect(this.x, this.y, this.width, this.height);
                 ctx.fillStyle = '#fff';
                 ctx.font = '10px Arial';
@@ -297,7 +278,6 @@
             }
         }
 
-        // Blutspritzer-Partikel-Klasse
         class BloodParticle {
             constructor(x, y) {
                 this.x = x;
@@ -313,7 +293,7 @@
             }
 
             update() {
-                this.velocity.y += 0.2; // Schwerkraft
+                this.velocity.y += 0.2;
                 this.x += this.velocity.x;
                 this.y += this.velocity.y;
                 this.alpha -= this.decay;
@@ -328,7 +308,6 @@
             }
         }
 
-        // Feuerwerk-Partikel-Klasse (unverändert)
         class Particle {
             constructor(x, y, color) {
                 this.x = x;
@@ -343,7 +322,7 @@
             }
 
             update() {
-                this.velocity.y += 0.05; // Schwerkraft
+                this.velocity.y += 0.05;
                 this.x += this.velocity.x;
                 this.y += this.velocity.y;
                 this.alpha -= this.decay;
@@ -358,7 +337,6 @@
             }
         }
 
-        // Spiel starten
         function startGame() {
             player = new Player();
             obstacles = [];
@@ -369,27 +347,21 @@
             gameRunning = true;
             levelDisplay.textContent = `Level: ${level}`;
 
-            // Hindernis-Erzeugung starten
             setInterval(() => {
                 if (gameRunning && Math.random() < 0.7) {
                     obstacles.push(new Obstacle());
                 }
             }, 2000);
 
-            // Spielschleife starten
             gameLoop();
         }
 
-        // Spielschleife
         function gameLoop() {
-            // Canvas löschen
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Hintergrund zeichnen
             ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Boden zeichnen
             ctx.fillStyle = '#4a4a6a';
             ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
             ctx.fillStyle = '#5a5a8a';
@@ -397,50 +369,42 @@
                 ctx.fillRect(i, canvas.height - 50, 20, 5);
             }
 
-            // Spieler aktualisieren und zeichnen
             player.update();
             player.draw();
 
-            // Hindernisse aktualisieren und zeichnen
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 obstacles[i].update();
                 obstacles[i].draw();
 
-                // Kollisionserkennung
                 if (detectCollision(player, obstacles[i])) {
                     createBloodSplatter(player.x + player.width / 2, player.y + player.height / 2);
                     gameOver();
                     return;
                 }
 
-                // Punktestand erhöhen, wenn Hindernis passiert wurde
                 if (!obstacles[i].passed && obstacles[i].x + obstacles[i].width < player.x) {
                     obstacles[i].passed = true;
                     score++;
 
-                    // Level erhöhen nach 7 Hindernissen
-                    if (score % WINNING_SCORE === 0) {
+                    // Level erhöhen alle 7 Hürden
+                    if (score % 7 === 0 && score > 0) {
                         level++;
                         levelDisplay.textContent = `Level: ${level}`;
-
-                        // Geschwindigkeit erhöhen
                         gameSpeed += 1;
+                    }
 
-                        // Nach dem ersten Levelsprung (7 geschaffte Hürden) zum Gewinner-Screen
-                        if (level > 1) {
-                            showFireworks();
-                            return;
-                        }
+                    // Gewonnen nach 21 Hürden (3 Level)
+                    if (score >= WINNING_SCORE) {
+                        showFireworks();
+                        return;
                     }
                 }
 
-                // Hindernis entfernen, wenn es außerhalb des Bildschirms ist
                 if (obstacles[i].x + obstacles[i].width < 0) {
                     obstacles.splice(i, 1);
                 }
             }
             
-            // Blutspritzer aktualisieren und zeichnen
             for (let i = bloodSplatterParticles.length - 1; i >= 0; i--) {
                 bloodSplatterParticles[i].update();
                 bloodSplatterParticles[i].draw();
@@ -450,13 +414,12 @@
                 }
             }
 
-
-            // Punktestand anzeigen
+            ctx.globalAlpha = 1;
             ctx.fillStyle = '#fff';
             ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
             ctx.fillText('Hürden geschafft: ' + score, 20, 40);
 
-            // Wolken im Hintergrund
             drawClouds();
 
             if (gameRunning) {
@@ -464,18 +427,14 @@
             }
         }
         
-        // Blutspritzer erzeugen
         function createBloodSplatter(x, y) {
             for (let i = 0; i < 30; i++) {
                 bloodSplatterParticles.push(new BloodParticle(x, y));
             }
         }
 
-
-        // Wolken zeichnen
         function drawClouds() {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            // Einfache Wolken
             ctx.beginPath();
             ctx.arc(200, 100, 30, 0, Math.PI * 2);
             ctx.arc(230, 90, 25, 0, Math.PI * 2);
@@ -489,7 +448,6 @@
             ctx.fill();
         }
 
-        // Kollisionserkennung
         function detectCollision(player, obstacle) {
             return player.x < obstacle.x + obstacle.width &&
                 player.x + player.width > obstacle.x &&
@@ -497,12 +455,10 @@
                 player.y + player.height > obstacle.y;
         }
 
-        // Spielende
         function gameOver() {
             gameRunning = false;
             bgMusic.pause();
 
-            // Game Over Nachricht anzeigen
             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -517,11 +473,9 @@
             ctx.font = '24px Arial';
             ctx.fillText('Tap to restart', canvas.width / 2, canvas.height / 2 + 50);
 
-            // Neustart-Event hinzufügen
             canvas.addEventListener('click', restartGame, { once: true });
         }
 
-        // Feuerwerk anzeigen (Gewinner-Screen)
         let floatingPlayer;
         let fireworksParticles = [];
 
@@ -531,16 +485,14 @@
             gameContainer.style.display = 'none';
             fireworksContainer.style.display = 'block';
 
-            // Strichfigur schweben lassen
             floatingPlayer = new Player();
             floatingPlayer.x = fireworksCanvas.width / 2 - floatingPlayer.width / 2;
-            floatingPlayer.y = fireworksCanvas.height / 2 + 150; // Startet unten und schwebt nach oben
-            floatingPlayer.velocityY = -1; // Schwebt langsam nach oben
-            floatingPlayer.jumping = true; // Deaktiviert Bodenkollision
+            floatingPlayer.y = fireworksCanvas.height / 2 + 150;
+            floatingPlayer.velocityY = -1;
+            floatingPlayer.jumping = true;
 
             const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
 
-            // Mehrere Feuerwerke erstellen
             for (let i = 0; i < 5; i++) {
                 setTimeout(() => {
                     createFirework(
@@ -557,12 +509,10 @@
                 }
             }
 
-            // Feuerwerk-Animation
             function animateFireworks() {
                 fireworksCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
                 fireworksCtx.fillRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
 
-                // Feuerwerk-Partikel aktualisieren und zeichnen
                 for (let i = fireworksParticles.length - 1; i >= 0; i--) {
                     fireworksParticles[i].update();
                     fireworksParticles[i].draw();
@@ -572,24 +522,20 @@
                     }
                 }
                 
-                // Strichfigur aktualisieren und zeichnen (schweben)
                 floatingPlayer.y += floatingPlayer.velocityY;
                 floatingPlayer.draw = function() {
                     fireworksCtx.strokeStyle = this.color;
                     fireworksCtx.lineWidth = 3;
 
-                    // Kopf zeichnen
                     fireworksCtx.beginPath();
                     fireworksCtx.arc(this.x + this.width / 2, this.y + 15, 15, 0, Math.PI * 2);
                     fireworksCtx.stroke();
 
-                    // Körper zeichnen
                     fireworksCtx.beginPath();
                     fireworksCtx.moveTo(this.x + this.width / 2, this.y + 30);
                     fireworksCtx.lineTo(this.x + this.width / 2, this.y + 60);
                     fireworksCtx.stroke();
 
-                    // Beine zeichnen (schwebend)
                     fireworksCtx.beginPath();
                     fireworksCtx.moveTo(this.x + this.width / 2, this.y + 60);
                     fireworksCtx.lineTo(this.x + this.width / 2 - 10, this.y + 75);
@@ -597,7 +543,6 @@
                     fireworksCtx.lineTo(this.x + this.width / 2 + 10, this.y + 75);
                     fireworksCtx.stroke();
 
-                    // Arme zeichnen (jubelnd)
                     fireworksCtx.beginPath();
                     fireworksCtx.moveTo(this.x + this.width / 2, this.y + 40);
                     fireworksCtx.lineTo(this.x + this.width / 2 - 15, this.y + 25);
@@ -607,8 +552,6 @@
                 };
                 floatingPlayer.draw();
 
-
-                // Glückwünsche anzeigen
                 fireworksCtx.globalAlpha = 1;
                 fireworksCtx.fillStyle = '#fff';
                 fireworksCtx.font = '48px Arial';
@@ -619,31 +562,26 @@
                 fireworksCtx.font = '24px Arial';
                 fireworksCtx.fillText('Happy Birthday!', fireworksCanvas.width / 2, 220);
 
-
-                // Animation fortsetzen
                 requestAnimationFrame(animateFireworks);
             }
 
             animateFireworks();
             
-            // Nach 10 Sekunden Neustart anbieten und Animation stoppen (optional, da die Animation unendlich läuft)
             setTimeout(() => {
                 fireworksCtx.fillText('Tap to play again', fireworksCanvas.width / 2, fireworksCanvas.height - 50);
                 fireworksCanvas.addEventListener('click', restartGame, { once: true });
             }, 10000);
         }
 
-        // Spiel neustarten
         function restartGame() {
             gameContainer.style.display = 'block';
             fireworksContainer.style.display = 'none';
             fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
-            fireworksParticles = []; // Partikel-Array leeren
+            fireworksParticles = [];
             startGame();
             bgMusic.play().catch(e => console.log("Musik konnte nicht gestartet werden:", e));
         }
 
-        // Springen bei Touch oder Klick
         canvas.addEventListener('touchstart', function (e) {
             e.preventDefault();
             if (gameRunning) {
@@ -657,7 +595,6 @@
             }
         });
 
-        // Canvas bei Fenstergrößenänderung anpassen
         window.addEventListener('resize', function () {
             resizeCanvas();
             if (player) {
@@ -665,12 +602,11 @@
             }
         });
 
-        // Musik beim ersten Klick/Touch starten, falls sie nicht automatisch gestartet wurde
         document.addEventListener('click', function() {
-            bgMusic.play().catch(e => console.log("Musik-Start fehlgeschlagen (Click-Handler):", e));
+            bgMusic.play().catch(e => console.log("Musik-Start fehlgeschlagen:", e));
         }, { once: true });
         document.addEventListener('touchstart', function() {
-            bgMusic.play().catch(e => console.log("Musik-Start fehlgeschlagen (Touch-Handler):", e));
+            bgMusic.play().catch(e => console.log("Musik-Start fehlgeschlagen:", e));
         }, { once: true });
 
     </script>
