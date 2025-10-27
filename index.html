@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Happy Birthday Marisa!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -39,18 +40,22 @@
             transition: opacity 2s ease-in-out;
         }
 
-        h1 {
+        .retro-title {
+            font-family: 'Press Start 2P', monospace;
             font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
-            animation: pulse 2s infinite;
+            font-weight: normal;
+            color: #ff66cc;
+            text-shadow:
+                2px 2px 0 #000,
+                4px 4px 0 #222;
+            letter-spacing: 2px;
+            animation: flicker 2s infinite;
+            image-rendering: pixelated;
         }
 
-        p {
-            font-size: 1.5rem;
-            margin-top: 1rem;
-            opacity: 0;
-            animation: fadeIn 1s ease-in 2s forwards;
+        #title-player {
+            margin-top: 2rem;
+            position: relative;
         }
 
         #game-container {
@@ -98,6 +103,25 @@
             z-index: 20;
         }
 
+        @keyframes flicker {
+
+            0%,
+            18%,
+            22%,
+            25%,
+            53%,
+            57%,
+            100% {
+                opacity: 1;
+            }
+
+            20%,
+            24%,
+            55% {
+                opacity: 0.7;
+            }
+        }
+
         @keyframes pulse {
             0% {
                 transform: scale(1);
@@ -109,6 +133,40 @@
 
             100% {
                 transform: scale(1);
+            }
+        }
+
+        @keyframes wave {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            25% {
+                transform: translateY(-10px);
+            }
+
+            50% {
+                transform: translateY(5px);
+            }
+
+            75% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
             }
         }
 
@@ -124,18 +182,14 @@
 
         /* Media Query für mobile Geräte */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
+            .retro-title {
+                font-size: 1.8rem;
             }
-            
-            p {
-                font-size: 1.2rem;
-            }
-            
+
             #instructions {
                 font-size: 1rem;
             }
-            
+
             #level-display {
                 font-size: 1.2rem;
             }
@@ -148,8 +202,8 @@
     <audio id="jumpSound" src="sproing.mp3"></audio>
 
     <div id="birthday-message">
-        <h1>Happy Birthday Marisa!</h1>
-        <p>We wish you all the best!</p>
+        <h1 class="retro-title">MARISA-RUN</h1>
+        <canvas id="title-player" width="200" height="150"></canvas>
     </div>
 
     <div id="game-container">
@@ -173,6 +227,8 @@
         const levelDisplay = document.getElementById('level-display');
         const bgMusic = document.getElementById('bgMusic');
         const jumpSound = document.getElementById('jumpSound');
+        const titleCanvas = document.getElementById('title-player');
+        const titleCtx = titleCanvas.getContext('2d');
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -181,8 +237,74 @@
             fireworksCanvas.height = window.innerHeight;
         }
 
+        // Karate-Animation für den Titelbildschirm
+        function animateTitleScreen() {
+            let legAngle = 0;
+            let armAngle = 0;
+            let animationDirection = 1;
+
+            function drawTitlePlayer() {
+                titleCtx.clearRect(0, 0, titleCanvas.width, titleCanvas.height);
+
+                // Position in der Mitte des Canvas
+                const x = titleCanvas.width / 2;
+                const y = titleCanvas.height / 2 + 20;
+
+                titleCtx.strokeStyle = '#ff4081';
+                titleCtx.lineWidth = 3;
+
+                // Kopf
+                titleCtx.beginPath();
+                titleCtx.arc(x, y - 40, 15, 0, Math.PI * 2);
+                titleCtx.stroke();
+
+                // Körper
+                titleCtx.beginPath();
+                titleCtx.moveTo(x, y - 25);
+                titleCtx.lineTo(x, y + 10);
+                titleCtx.stroke();
+
+                // Beine mit Animation
+                titleCtx.beginPath();
+                // Linkes Bein
+                titleCtx.moveTo(x, y + 10);
+                titleCtx.lineTo(x - 10 + legAngle * 5, y + 30);
+                titleCtx.lineTo(x - 15 + legAngle * 10, y + 40);
+                // Rechtes Bein
+                titleCtx.moveTo(x, y + 10);
+                titleCtx.lineTo(x + 10 - legAngle * 5, y + 30);
+                titleCtx.lineTo(x + 15 - legAngle * 10, y + 40);
+                titleCtx.stroke();
+
+                // Arme mit Animation
+                titleCtx.beginPath();
+                // Linker Arm
+                titleCtx.moveTo(x, y - 10);
+                titleCtx.lineTo(x - 15 + armAngle * 5, y);
+                titleCtx.lineTo(x - 20 + armAngle * 10, y + 10);
+                // Rechter Arm
+                titleCtx.moveTo(x, y - 10);
+                titleCtx.lineTo(x + 15 - armAngle * 5, y);
+                titleCtx.lineTo(x + 20 - armAngle * 10, y + 10);
+                titleCtx.stroke();
+
+                // Update animation angles
+                legAngle += 0.05 * animationDirection;
+                armAngle += 0.08 * animationDirection;
+
+                if (legAngle > 0.7 || legAngle < -0.7) {
+                    animationDirection *= -1;
+                }
+
+                requestAnimationFrame(drawTitlePlayer);
+            }
+
+            drawTitlePlayer();
+        }
+
         window.onload = function () {
             resizeCanvas();
+            animateTitleScreen();
 
             setTimeout(() => {
                 birthdayMessage.style.opacity = '0';
@@ -196,10 +318,10 @@
             }, 3000);
         };
 
-        let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds;
+        let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
         const gravity = 0.5;
         const jumpForce = -20;
-        const WINNING_SCORE = 21; // Jetzt muss man 21 Hürden schaffen um zu gewinnen (3 Level × 7)
+        const WINNING_SCORE = 21;
 
         class Player {
             constructor() {
@@ -221,8 +343,8 @@
                 // Nur während des Sprungs Beine und Arme animieren
                 if (this.jumping) {
                     // Beine und Arme während des Sprungs anpassen
-                    this.legAngle = this.velocityY < 0 ? -0.7 : 0.7; // Beine nach hinten beim Springen, vorne beim Fallen
-                    this.armAngle = this.velocityY < 0 ? 0.7 : -0.7; // Arme nach oben beim Springen, unten beim Fallen
+                    this.legAngle = this.velocityY < 0 ? -0.7 : 0.7;
+                    this.armAngle = this.velocityY < 0 ? 0.7 : -0.7;
                 } else {
                     // Neutrale Position am Boden
                     this.legAngle = 0;
@@ -283,6 +405,153 @@
                 ctx.lineTo(this.x + this.width / 2 + 10 + this.armAngle * 5, this.y + 45);
                 ctx.lineTo(this.x + this.width / 2 + 15 + this.armAngle * 10, this.y + 50);
                 ctx.stroke();
+            }
+        }
+
+        // Stadt-Skyline für den Hintergrund
+        class CitySkyline {
+            constructor() {
+                this.buildings = [];
+                this.generateBuildings();
+            }
+
+            generateBuildings() {
+                const buildingCount = 15;
+                const maxHeight = 150;
+                const minHeight = 50;
+
+                for (let i = 0; i < buildingCount; i++) {
+                    const width = Math.random() * 80 + 40;
+                    const height = Math.random() * (maxHeight - minHeight) + minHeight;
+                    const x = (i * canvas.width / buildingCount) - 20;
+
+                    // Fenster werden EINMAL erzeugt
+                    const windows = [];
+                    const windowCols = Math.floor(Math.random() * 5) + 3;
+                    const windowRows = 3;
+
+                    for (let c = 1; c <= windowCols; c++) {
+                        for (let r = 1; r <= windowRows; r++) {
+                            const isOn = Math.random() > 0.3;
+                            windows.push({ c, r, on: isOn });
+                        }
+                    }
+
+                    this.buildings.push({
+                        x: x,
+                        width: width,
+                        height: height,
+                        color: `hsl(${200 + Math.random() * 20}, 70%, ${20 + Math.random() * 10}%)`,
+                        windowCols,
+                        windows
+                    });
+                }
+            }
+
+            draw() {
+                // Zeichne Gebäude
+                for (const b of this.buildings) {
+                    ctx.fillStyle = b.color;
+                    ctx.fillRect(b.x, canvas.height - 50 - b.height, b.width, b.height);
+
+                    // Fenster aus gespeicherten Werten
+                    ctx.fillStyle = 'rgba(255, 255, 200, 0.3)';
+                    const windowWidth = b.width / (b.windowCols + 1);
+                    const windowHeight = 10;
+
+                    for (let w of b.windows) {
+                        if (w.on) {
+                            ctx.fillRect(
+                                b.x + w.c * windowWidth - windowWidth / 2,
+                                canvas.height - 50 - b.height + w.r * 20,
+                                windowWidth - 4,
+                                windowHeight
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // Banner-Flugzeug
+        class BannerPlane {
+            constructor() {
+                this.width = 120;
+                this.height = 60;
+                this.x = -this.width;
+                this.y = 100;
+                this.speed = 2;
+                this.bannerWave = 0;
+                this.active = false;
+                this.appearanceTimer = 0;
+            }
+
+            update() {
+                // Erscheint zufällig alle 20-30 Sekunden
+                if (!this.active) {
+                    this.appearanceTimer++;
+                    if (this.appearanceTimer > 600 + Math.random() * 300) { // 20-30 Sekunden
+                        this.active = true;
+                        this.x = -this.width;
+                        this.appearanceTimer = 0;
+                    }
+                    return;
+                }
+
+                this.x += this.speed;
+                this.bannerWave += 0.1;
+
+                if (this.x > canvas.width) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                if (!this.active) return;
+
+                // Flugzeugkörper
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, 20, 8);
+                ctx.fill();
+
+                // Cockpit
+                ctx.fillStyle = '#87CEEB';
+                ctx.beginPath();
+                ctx.ellipse(this.x + this.width - 15, this.y + 10, 12, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Flügel (oben und unten)
+                ctx.fillStyle = '#cccccc';
+                ctx.fillRect(this.x + 20, this.y - 8, 60, 6);
+                ctx.fillRect(this.x + 25, this.y + 22, 50, 6);
+
+                // Propeller-Animation
+                ctx.save();
+                ctx.translate(this.x - 5, this.y + 10);
+                ctx.rotate(this.bannerWave * 10); // nutzt bestehende variable bannerWave für Rotation
+                ctx.fillStyle = '#999';
+                ctx.fillRect(-1, -12, 2, 24);
+                ctx.restore();
+
+                // Banner mit Seil
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.x + 10, this.y + 30);
+                ctx.lineTo(this.x - 30, this.y + 40);
+                ctx.stroke();
+
+                // Banner selbst
+                const bannerY = this.y + 30 + Math.sin(this.bannerWave) * 3;
+                ctx.fillStyle = '#ff4081';
+                ctx.fillRect(this.x - 130, bannerY, 100, 24);
+
+                // Banner-Text
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('GO MARISA GO!', this.x - 80, bannerY + 16);
             }
         }
 
@@ -409,6 +678,8 @@
             obstacles = [];
             bloodSplatterParticles = [];
             clouds = [];
+            bannerPlane = new BannerPlane();
+            citySkyline = new CitySkyline();
             gameSpeed = 3;
             score = 0;
             level = 1;
@@ -426,14 +697,14 @@
                     // Prüfe, ob genug Platz für ein neues Hindernis ist
                     let canAddObstacle = true;
                     const minDistance = 300; // Mindestabstand zwischen Hindernissen
-                    
+
                     for (let obstacle of obstacles) {
                         if (obstacle.x > canvas.width - minDistance) {
                             canAddObstacle = false;
                             break;
                         }
                     }
-                    
+
                     if (canAddObstacle) {
                         obstacles.push(new Obstacle());
                     }
@@ -449,11 +720,18 @@
             ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Zeichne Stadt-Skyline
+            citySkyline.draw();
+
             // Zeichne und aktualisiere Wolken
             for (let cloud of clouds) {
                 cloud.update();
                 cloud.draw();
             }
+
+            // Zeichne und aktualisiere Banner-Flugzeug
+            bannerPlane.update();
+            bannerPlane.draw();
 
             ctx.fillStyle = '#4a4a6a';
             ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
@@ -632,24 +910,26 @@
 
                 fireworksCtx.globalAlpha = 1;
                 fireworksCtx.fillStyle = '#fff';
-                
+
                 // Angepasste Schriftgrößen für mobile Geräte
                 const isMobile = window.innerWidth < 768;
                 const mainTextSize = isMobile ? '30px' : '48px';
                 const subTextSize = isMobile ? '20px' : '36px';
                 const tapTextSize = isMobile ? '18px' : '24px';
-                
+
                 fireworksCtx.font = mainTextSize + ' Arial';
                 fireworksCtx.textAlign = 'center';
                 fireworksCtx.fillText('Congratulations Marisa!', fireworksCanvas.width / 2, isMobile ? 80 : 100);
                 fireworksCtx.font = subTextSize + ' Arial';
-                
+
                 // Text für mobile Geräte anpassen
                 if (isMobile) {
                     fireworksCtx.fillText("You're prepared for", fireworksCanvas.width / 2, isMobile ? 120 : 140);
                     fireworksCtx.fillText("all upcoming tasks!", fireworksCanvas.width / 2, isMobile ? 150 : 180);
+                    fireworksCtx.fillText("Happy Birthday!", fireworksCanvas.width / 2, isMobile ? 190 : 220);
                 } else {
                     fireworksCtx.fillText("You're now prepared for all upcoming tasks!", fireworksCanvas.width / 2, isMobile ? 140 : 160);
+                    fireworksCtx.fillText("Happy Birthday!", fireworksCanvas.width / 2, isMobile ? 200 : 220);
                 }
 
                 requestAnimationFrame(animateFireworks);
@@ -660,7 +940,7 @@
             setTimeout(() => {
                 fireworksCtx.font = '24px Arial';
                 fireworksCtx.fillText('Tap to play again', fireworksCanvas.width / 2, fireworksCanvas.height - 50);
-                
+
                 // Verwende sowohl click als auch touchstart für bessere mobile Unterstützung
                 document.addEventListener('click', restartGame, { once: true });
                 document.addEventListener('touchstart', restartGame, { once: true });
