@@ -22,6 +22,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            touch-action: manipulation;
         }
 
         #birthday-message {
@@ -120,6 +121,25 @@
                 opacity: 1;
             }
         }
+
+        /* Media Query für mobile Geräte */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            p {
+                font-size: 1.2rem;
+            }
+            
+            #instructions {
+                font-size: 1rem;
+            }
+            
+            #level-display {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 
@@ -176,7 +196,7 @@
             }, 3000);
         };
 
-        let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles;
+        let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds;
         const gravity = 0.5;
         const jumpForce = -20;
         const WINNING_SCORE = 21; // Jetzt muss man 21 Hürden schaffen um zu gewinnen (3 Level × 7)
@@ -190,16 +210,31 @@
                 this.velocityY = 0;
                 this.jumping = false;
                 this.color = '#ff4081';
+                this.legAngle = 0;
+                this.armAngle = 0;
+                this.animationSpeed = 0.2;
+                this.isRunning = true;
             }
 
             update() {
                 this.velocityY += gravity;
                 this.y += this.velocityY;
 
+                // Laufanimation nur wenn Spieler auf dem Boden ist
+                if (!this.jumping) {
+                    this.legAngle = Math.sin(Date.now() * this.animationSpeed) * 0.5;
+                    this.armAngle = Math.sin(Date.now() * this.animationSpeed) * 0.3;
+                } else {
+                    // Beine und Arme während des Sprungs anpassen
+                    this.legAngle = this.velocityY < 0 ? -0.7 : 0.7; // Beine nach hinten beim Springen, vorne beim Fallen
+                    this.armAngle = this.velocityY < 0 ? 0.7 : -0.7; // Arme nach oben beim Springen, unten beim Fallen
+                }
+
                 if (this.y > canvas.height - this.height - 50) {
                     this.y = canvas.height - this.height - 50;
                     this.jumping = false;
                     this.velocityY = 0;
+                    this.isRunning = true;
                 }
             }
 
@@ -207,6 +242,7 @@
                 if (!this.jumping) {
                     this.velocityY = jumpForce;
                     this.jumping = true;
+                    this.isRunning = false;
                     jumpSound.currentTime = 0;
                     jumpSound.play();
                 }
@@ -216,27 +252,39 @@
                 ctx.strokeStyle = this.color;
                 ctx.lineWidth = 3;
 
+                // Kopf
                 ctx.beginPath();
                 ctx.arc(this.x + this.width / 2, this.y + 15, 15, 0, Math.PI * 2);
                 ctx.stroke();
 
+                // Körper
                 ctx.beginPath();
                 ctx.moveTo(this.x + this.width / 2, this.y + 30);
                 ctx.lineTo(this.x + this.width / 2, this.y + 60);
                 ctx.stroke();
 
+                // Beine mit Knien
                 ctx.beginPath();
+                // Linkes Bein
                 ctx.moveTo(this.x + this.width / 2, this.y + 60);
-                ctx.lineTo(this.x + this.width / 2 - 15, this.y + 80);
+                ctx.lineTo(this.x + this.width / 2 - 10 + this.legAngle * 5, this.y + 70);
+                ctx.lineTo(this.x + this.width / 2 - 15 + this.legAngle * 10, this.y + 80);
+                // Rechtes Bein
                 ctx.moveTo(this.x + this.width / 2, this.y + 60);
-                ctx.lineTo(this.x + this.width / 2 + 15, this.y + 80);
+                ctx.lineTo(this.x + this.width / 2 + 10 + this.legAngle * 5, this.y + 70);
+                ctx.lineTo(this.x + this.width / 2 + 15 + this.legAngle * 10, this.y + 80);
                 ctx.stroke();
 
+                // Arme mit Ellbogen
                 ctx.beginPath();
+                // Linker Arm
                 ctx.moveTo(this.x + this.width / 2, this.y + 40);
-                ctx.lineTo(this.x + this.width / 2 - 15, this.y + 55);
+                ctx.lineTo(this.x + this.width / 2 - 10 + this.armAngle * 5, this.y + 45);
+                ctx.lineTo(this.x + this.width / 2 - 15 + this.armAngle * 10, this.y + 50);
+                // Rechter Arm
                 ctx.moveTo(this.x + this.width / 2, this.y + 40);
-                ctx.lineTo(this.x + this.width / 2 + 15, this.y + 55);
+                ctx.lineTo(this.x + this.width / 2 + 10 + this.armAngle * 5, this.y + 45);
+                ctx.lineTo(this.x + this.width / 2 + 15 + this.armAngle * 10, this.y + 50);
                 ctx.stroke();
             }
         }
@@ -271,7 +319,32 @@
             draw() {
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
-                // Die Text-Beschriftung wurde entfernt
+            }
+        }
+
+        class Cloud {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * 150 + 50;
+                this.speed = Math.random() * 0.5 + 0.2;
+                this.size = Math.random() * 40 + 20;
+            }
+
+            update() {
+                this.x -= this.speed;
+                if (this.x < -100) {
+                    this.x = canvas.width + 50;
+                    this.y = Math.random() * 150 + 50;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.arc(this.x + this.size * 0.8, this.y - this.size * 0.2, this.size * 0.7, 0, Math.PI * 2);
+                ctx.arc(this.x + this.size * 1.5, this.y, this.size * 0.8, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
 
@@ -338,15 +411,35 @@
             player = new Player();
             obstacles = [];
             bloodSplatterParticles = [];
+            clouds = [];
             gameSpeed = 3;
             score = 0;
             level = 1;
             gameRunning = true;
             levelDisplay.textContent = `Level: ${level}`;
 
+            // Erstelle einige Wolken
+            for (let i = 0; i < 5; i++) {
+                clouds.push(new Cloud());
+            }
+
+            // Hindernis-Erzeugung mit Mindestabstand
             setInterval(() => {
                 if (gameRunning && Math.random() < 0.7) {
-                    obstacles.push(new Obstacle());
+                    // Prüfe, ob genug Platz für ein neues Hindernis ist
+                    let canAddObstacle = true;
+                    const minDistance = 300; // Mindestabstand zwischen Hindernissen
+                    
+                    for (let obstacle of obstacles) {
+                        if (obstacle.x > canvas.width - minDistance) {
+                            canAddObstacle = false;
+                            break;
+                        }
+                    }
+                    
+                    if (canAddObstacle) {
+                        obstacles.push(new Obstacle());
+                    }
                 }
             }, 2000);
 
@@ -358,6 +451,12 @@
 
             ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Zeichne und aktualisiere Wolken
+            for (let cloud of clouds) {
+                cloud.update();
+                cloud.draw();
+            }
 
             ctx.fillStyle = '#4a4a6a';
             ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
@@ -401,7 +500,7 @@
                     obstacles.splice(i, 1);
                 }
             }
-            
+
             for (let i = bloodSplatterParticles.length - 1; i >= 0; i--) {
                 bloodSplatterParticles[i].update();
                 bloodSplatterParticles[i].draw();
@@ -417,32 +516,15 @@
             ctx.textAlign = 'left';
             ctx.fillText('Hürden geschafft: ' + score, 20, 40);
 
-            drawClouds();
-
             if (gameRunning) {
                 requestAnimationFrame(gameLoop);
             }
         }
-        
+
         function createBloodSplatter(x, y) {
             for (let i = 0; i < 30; i++) {
                 bloodSplatterParticles.push(new BloodParticle(x, y));
             }
-        }
-
-        function drawClouds() {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.beginPath();
-            ctx.arc(200, 100, 30, 0, Math.PI * 2);
-            ctx.arc(230, 90, 25, 0, Math.PI * 2);
-            ctx.arc(260, 100, 30, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(500, 150, 25, 0, Math.PI * 2);
-            ctx.arc(530, 140, 20, 0, Math.PI * 2);
-            ctx.arc(560, 150, 25, 0, Math.PI * 2);
-            ctx.fill();
         }
 
         function detectCollision(player, obstacle) {
@@ -470,7 +552,9 @@
             ctx.font = '24px Arial';
             ctx.fillText('Tap to restart', canvas.width / 2, canvas.height / 2 + 50);
 
-            canvas.addEventListener('click', restartGame, { once: true });
+            // Verwende sowohl click als auch touchstart für bessere mobile Unterstützung
+            document.addEventListener('click', restartGame, { once: true });
+            document.addEventListener('touchstart', restartGame, { once: true });
         }
 
         let floatingPlayer;
@@ -518,9 +602,9 @@
                         fireworksParticles.splice(i, 1);
                     }
                 }
-                
+
                 floatingPlayer.y += floatingPlayer.velocityY;
-                floatingPlayer.draw = function() {
+                floatingPlayer.draw = function () {
                     fireworksCtx.strokeStyle = this.color;
                     fireworksCtx.lineWidth = 3;
 
@@ -551,20 +635,38 @@
 
                 fireworksCtx.globalAlpha = 1;
                 fireworksCtx.fillStyle = '#fff';
-                fireworksCtx.font = '48px Arial';
+                
+                // Angepasste Schriftgrößen für mobile Geräte
+                const isMobile = window.innerWidth < 768;
+                const mainTextSize = isMobile ? '30px' : '48px';
+                const subTextSize = isMobile ? '20px' : '36px';
+                const tapTextSize = isMobile ? '18px' : '24px';
+                
+                fireworksCtx.font = mainTextSize + ' Arial';
                 fireworksCtx.textAlign = 'center';
-                fireworksCtx.fillText('Congratulations Marisa!', fireworksCanvas.width / 2, 100);
-                fireworksCtx.font = '36px Arial';
-                fireworksCtx.fillText("You're prepared for all upcoming tasks!", fireworksCanvas.width / 2, 160);
+                fireworksCtx.fillText('Congratulations Marisa!', fireworksCanvas.width / 2, isMobile ? 80 : 100);
+                fireworksCtx.font = subTextSize + ' Arial';
+                
+                // Text für mobile Geräte anpassen
+                if (isMobile) {
+                    fireworksCtx.fillText("You're prepared for", fireworksCanvas.width / 2, isMobile ? 120 : 140);
+                    fireworksCtx.fillText("all upcoming tasks!", fireworksCanvas.width / 2, isMobile ? 150 : 180);
+                } else {
+                    fireworksCtx.fillText("You're prepared for all upcoming tasks!", fireworksCanvas.width / 2, isMobile ? 140 : 160);
+                }
 
                 requestAnimationFrame(animateFireworks);
             }
 
             animateFireworks();
-            
+
             setTimeout(() => {
+                fireworksCtx.font = '24px Arial';
                 fireworksCtx.fillText('Tap to play again', fireworksCanvas.width / 2, fireworksCanvas.height - 50);
-                fireworksCanvas.addEventListener('click', restartGame, { once: true });
+                
+                // Verwende sowohl click als auch touchstart für bessere mobile Unterstützung
+                document.addEventListener('click', restartGame, { once: true });
+                document.addEventListener('touchstart', restartGame, { once: true });
             }, 10000);
         }
 
@@ -577,14 +679,15 @@
             bgMusic.play().catch(e => console.log("Musik konnte nicht gestartet werden:", e));
         }
 
-        canvas.addEventListener('touchstart', function (e) {
+        // Verbesserte Touch- und Click-Events
+        document.addEventListener('touchstart', function (e) {
             e.preventDefault();
             if (gameRunning) {
                 player.jump();
             }
-        });
+        }, { passive: false });
 
-        canvas.addEventListener('mousedown', function () {
+        document.addEventListener('mousedown', function () {
             if (gameRunning) {
                 player.jump();
             }
@@ -597,13 +700,12 @@
             }
         });
 
-        document.addEventListener('click', function() {
+        document.addEventListener('click', function () {
             bgMusic.play().catch(e => console.log("Musik-Start fehlgeschlagen:", e));
         }, { once: true });
-        document.addEventListener('touchstart', function() {
+        document.addEventListener('touchstart', function () {
             bgMusic.play().catch(e => console.log("Musik-Start fehlgeschlagen:", e));
         }, { once: true });
-
     </script>
 </body>
 
