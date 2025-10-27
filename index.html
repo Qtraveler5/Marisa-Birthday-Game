@@ -212,29 +212,27 @@
                 this.color = '#ff4081';
                 this.legAngle = 0;
                 this.armAngle = 0;
-                this.animationSpeed = 0.2;
-                this.isRunning = true;
             }
 
             update() {
                 this.velocityY += gravity;
                 this.y += this.velocityY;
 
-                // Laufanimation nur wenn Spieler auf dem Boden ist
-                if (!this.jumping) {
-                    this.legAngle = Math.sin(Date.now() * this.animationSpeed) * 0.5;
-                    this.armAngle = Math.sin(Date.now() * this.animationSpeed) * 0.3;
-                } else {
+                // Nur während des Sprungs Beine und Arme animieren
+                if (this.jumping) {
                     // Beine und Arme während des Sprungs anpassen
                     this.legAngle = this.velocityY < 0 ? -0.7 : 0.7; // Beine nach hinten beim Springen, vorne beim Fallen
                     this.armAngle = this.velocityY < 0 ? 0.7 : -0.7; // Arme nach oben beim Springen, unten beim Fallen
+                } else {
+                    // Neutrale Position am Boden
+                    this.legAngle = 0;
+                    this.armAngle = 0;
                 }
 
                 if (this.y > canvas.height - this.height - 50) {
                     this.y = canvas.height - this.height - 50;
                     this.jumping = false;
                     this.velocityY = 0;
-                    this.isRunning = true;
                 }
             }
 
@@ -242,7 +240,6 @@
                 if (!this.jumping) {
                     this.velocityY = jumpForce;
                     this.jumping = true;
-                    this.isRunning = false;
                     jumpSound.currentTime = 0;
                     jumpSound.play();
                 }
